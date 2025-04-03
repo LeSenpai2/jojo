@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur de Monnaies</title>
+    <link rel="icon" href="Nouveau dossier/téléchargement.jpg" type="image/png">
+    <link rel="stylesheet" href="styles.CSS">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h4>convert/<span>money</span></h4>
+            <button id="themeToggle">🌙</button>
+        </header>
+
+        <div class="converter">
+            <h1>Convertisseur de devises</h1>
+            <form id="converterForm" class="transparent-form">
+                <input type="number" id="amount" placeholder="Montant" required>
+                <select id="currencyFrom"></select>
+                <select id="currencyTo"></select>
+                <button type="submit">Convertir</button>
+            </form>
+
+            <div id="result"></div>
+            <button id="historyToggle">Afficher l'historique</button>
+
+            <div id="historyContainer" class="history-container">
+                <h2>Historique des conversions</h2>
+                <ul id="historyList"></ul>
+                <button id="clearHistory">Effacer l'historique</button>
+            </div>
+        </div>
+    </div>
+
+    <script >
+        const exchangeRates = {
+    USD: 1,
+    EUR: 0.92,
+    GBP: 0.81,
+    JPY: 131.05,
+    CNY: 6.83,
+    INR: 82.25,
+    AUD: 1.49,
+    CAD: 1.35,
+    MXN: 18.57,
+    CHF: 0.92,
+    FCFA: 655.96
+};
+
+// Récupérer les éléments du DOM
+const themeToggleButton = document.getElementById('themeToggle');
+const converterForm = document.getElementById('converterForm');
+const resultDiv = document.getElementById('result');
+const historyList = document.getElementById('historyList');
+const historyContainer = document.getElementById('historyContainer');
+const historyToggleButton = document.getElementById('historyToggle');
+const clearHistoryButton = document.getElementById('clearHistory');
+let history = JSON.parse(localStorage.getItem('conversionHistory')) || [];
+
+// Mettre à jour les options des devises
+const updateCurrencyOptions = () => {
+    const currencies = Object.keys(exchangeRates);
+    const currencyFromSelect = document.getElementById('currencyFrom');
+    const currencyToSelect = document.getElementById('currencyTo');
+    
+    currencies.forEach(currency => {
+        const optionFrom = document.createElement('option');
+        optionFrom.value = currency;
+        optionFrom.textContent = currency;
+        currencyFromSelect.appendChild(optionFrom);
+
+        const optionTo = document.createElement('option');
+        optionTo.value = currency;
+        optionTo.textContent = currency;
+        currencyToSelect.appendChild(optionTo);
+    });
+};
+
+// Changer le thème (mode sombre/clair)
+themeToggleButton.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    themeToggleButton.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+});
+
+// Afficher ou masquer l'historique
+historyToggleButton.addEventListener('click', () => {
+    historyContainer.classList.toggle('history-container');
+    historyContainer.style.display = historyContainer.style.display === 'block' ? 'none' : 'block';
+});
+
+// Soumettre le formulaire pour la conversion
+converterForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const amount = parseFloat(document.getElementById('amount').value);
+    const fromCurrency = document.getElementById('currencyFrom').value;
+    const toCurrency = document.getElementById('currencyTo').value;
+
+    if (isNaN(amount)) {
+        resultDiv.textContent = 'Veuillez entrer un montant valide.';
+        return;
+    }
+
+    const conversionRate = exchangeRates[toCurrency] / exchangeRates[fromCurrency];
+    const convertedAmount = (amount * conversionRate).toFixed(2);
+    const resultText = `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`;
+
+    resultDiv.textContent = resultText;
+
+    const conversionDate = new Date().toLocaleString();
+    history.push({ resultText, conversionDate });
+    localStorage.setItem('conversionHistory', JSON.stringify(history));
+
+    displayHistory();
+});
+
+// Effacer l'historique
+clearHistoryButton.addEventListener('click', () => {
+    history = [];
+    localStorage.setItem('conversionHistory', JSON.stringify(history));
+    displayHistory();
+});
+
+// Afficher l'historique des conversions
+function displayHistory() {
+    historyList.innerHTML = '';
+    history.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.resultText} - ${entry.conversionDate}`;
+        historyList.appendChild(li);
+    });
+}
+
+// Initialiser les options de devise et afficher l'historique
+updateCurrencyOptions();
+displayHistory();
+    </script>
+</body>
+</html>
